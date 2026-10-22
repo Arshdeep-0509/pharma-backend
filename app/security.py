@@ -45,14 +45,16 @@ def set_session_cookie(response: Response, user: User) -> None:
         create_token(user),
         max_age=settings.session_hours * 3600,
         httponly=True,  # not readable from JavaScript, so XSS can't steal the session
-        samesite="lax",
-        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        secure=settings.cookie_secure_effective,
         path="/",
     )
 
 
 def clear_session_cookie(response: Response) -> None:
-    response.delete_cookie(COOKIE_NAME, path="/", samesite="lax", secure=settings.cookie_secure)
+    response.delete_cookie(
+        COOKIE_NAME, path="/", samesite=settings.cookie_samesite, secure=settings.cookie_secure_effective
+    )
 
 
 _unauthorized = HTTPException(status.HTTP_401_UNAUTHORIZED, "Please log in to continue")

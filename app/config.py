@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +16,14 @@ class Settings(BaseSettings):
     session_hours: int = 12
     # Set true in production (HTTPS) so the session cookie is only sent over TLS.
     cookie_secure: bool = False
+    # "lax" when frontend and API share a site (e.g. both on localhost). Use "none" when the
+    # frontend is on a different site than the API (e.g. two *.vercel.app domains) — the browser
+    # only sends the session cookie cross-site with SameSite=None, which also forces Secure.
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
+
+    @property
+    def cookie_secure_effective(self) -> bool:
+        return self.cookie_secure or self.cookie_samesite == "none"
 
     @property
     def cors_origin_list(self) -> list[str]:
